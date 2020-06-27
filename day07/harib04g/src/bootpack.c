@@ -1,3 +1,4 @@
+
 #include "bootpack.h"
 
 void wait_KBC_sendready(void){
@@ -33,8 +34,8 @@ void enable_mouse(void){
 }
 
 void HariMain(void){
-    char *vram;
-    char str[32] = {0};
+    // char *vram;
+    char str[32];
     char mcursor[16 * 16];
     char keybuf[KEYBUF_SIZE];
     char mousebuf[MOUSEBUF_SIZE];
@@ -95,7 +96,7 @@ void HariMain(void){
                 io_sti();
                 _sprintf(str, "%02X", i);
                 
-                boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
+                boxfill8(binfo->vram, binfo->scrnx, COL8_000000, 0, 16, 15, 31);
                 putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, str);
                 
                 _sprintf(str, "keybuf(r,w) = (%d : %d)", keyfifo.q, keyfifo.p);

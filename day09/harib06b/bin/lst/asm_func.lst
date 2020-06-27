@@ -1,0 +1,218 @@
+GAS LISTING src/asm/asm_func.s 			page 1
+
+
+   1              	.arch i486
+   2              	
+   3              	.text
+   4              	
+   5              	.global io_hlt, io_cli, io_sti, io_stihlt
+   6              	.global io_in8, io_in16, io_in32
+   7              	.global io_out8, io_out16, io_out32
+   8              	.global io_load_eflags, io_store_eflags
+   9              	.global load_gdtr, load_idtr
+  10              	.global load_cr0, store_cr0
+  11              	.global asm_inthandler21, asm_inthandler2c, asm_inthandler27
+  12              	
+  13              	.extern inthandler21, inthandler2c, inthandler27
+  14              	
+  15              	#void io_htl(void)
+  16              	io_hlt:
+  17 0000 F4       	    hlt
+  18 0001 C3       	    ret
+  19              	
+  20              	#void io_cli(void)
+  21              	io_cli:
+  22 0002 FA       	    cli
+  23 0003 C3       	    ret
+  24              	
+  25              	#void io_sti(void)
+  26              	io_sti:
+  27 0004 FB       	    sti
+  28 0005 C3       	    ret
+  29              	
+  30              	#void io_stihlt(void)
+  31              	io_stihlt:
+  32 0006 FB       	    sti
+  33 0007 F4       	    hlt
+  34 0008 C3       	    ret
+  35              	
+  36              	#int io_in8(int port)
+  37              	io_in8:
+  38 0009 8B542404 	    movl 4(%esp), %edx
+  39 000d B8000000 	    movl $0, %eax
+  39      00
+  40 0012 EC       	    inb %dx, %al
+  41 0013 C3       	    ret
+  42              	
+  43              	#int io_in16(int port)
+  44              	io_in16:
+  45 0014 8B542404 	    movl 4(%esp), %edx
+  46 0018 B8000000 	    movl $0, %eax
+  46      00
+  47 001d 66ED     	    inw %dx, %ax
+  48 001f C3       	    ret
+  49              	
+  50              	#int io_in32(int port)
+  51              	io_in32:
+  52 0020 8B542404 	    movl 4(%esp), %edx
+  53 0024 ED       	    inl %dx, %eax
+  54 0025 C3       	    ret
+  55              	
+GAS LISTING src/asm/asm_func.s 			page 2
+
+
+  56              	#void io_out8(int port, int data)
+  57              	io_out8:
+  58 0026 8B542404 	    movl 4(%esp), %edx
+  59 002a 8A442408 	    movb 8(%esp), %al
+  60 002e EE       	    outb %al, %dx
+  61 002f C3       	    ret
+  62              	
+  63              	#void io_out16(int port, int data)
+  64              	io_out16:
+  65 0030 8B542404 	    movl 4(%esp), %edx
+  66 0034 8B442408 	    movl 8(%esp), %eax
+  67 0038 66EF     	    outw %ax, %dx
+  68 003a C3       	    ret
+  69              	
+  70              	#void io_out32(int port, int data)
+  71              	io_out32:
+  72 003b 8B542404 	    movl 4(%esp), %edx
+  73 003f 8B442408 	    movl 8(%esp), %eax
+  74 0043 EF       	    outl %eax, %dx
+  75 0044 C3       	    ret
+  76              	
+  77              	#int io_load_eflags(void)
+  78              	io_load_eflags:
+  79 0045 9C       	    pushf
+  80 0046 58       	    pop %eax
+  81 0047 C3       	    ret
+  82              	
+  83              	#int io_store_eflags(void)
+  84              	io_store_eflags:
+  85 0048 8B442404 	    movl 4(%esp), %eax
+  86 004c 50       	    push %eax
+  87 004d 9D       	    popf
+  88 004e C3       	    ret
+  89              	
+  90              	#void load_gdtr(int limit, int addr)
+  91              	load_gdtr:
+  92 004f 668B4424 	    movw 4(%esp), %ax #limit
+  92      04
+  93 0054 66894424 	    movw %ax, 6(%esp)
+  93      06
+  94 0059 0F015424 	    lgdt 6(%esp)
+  94      06
+  95 005e C3       	    ret
+  96              	
+  97              	#void load_idtr(int limit, int addr)
+  98              	load_idtr:
+  99 005f 668B4424 	    movw 4(%esp), %ax #limit
+  99      04
+ 100 0064 66894424 	    movw %ax, 6(%esp)
+ 100      06
+ 101 0069 0F015C24 	    lidt 6(%esp)
+ 101      06
+ 102 006e C3       	    ret
+ 103              	
+ 104              	#int io_load_cr0(void)
+ 105              	load_cr0:
+ 106 006f 0F20C0   	    movl %cr0, %eax
+GAS LISTING src/asm/asm_func.s 			page 3
+
+
+ 107 0072 C3       	    ret
+ 108              	
+ 109              	#void io_store_cr0(int cr0)
+ 110              	store_cr0:
+ 111 0073 8B442404 	    movl 4(%esp), %eax
+ 112 0077 0F22C0   	    movl %eax, %cr0
+ 113 007a C3       	    ret
+ 114              	
+ 115              	
+ 116              	#void asm_inthandler21(void)
+ 117              	asm_inthandler21:
+ 118 007b 06       	    push %es
+ 119 007c 1E       	    push %ds
+ 120 007d 60       	    pusha
+ 121 007e 89E0     	    movl %esp, %eax
+ 122 0080 50       	    push %eax
+ 123 0081 668CD0   	    movw %ss, %ax
+ 124 0084 8ED8     	    movw %ax, %ds
+ 125 0086 8EC0     	    movw %ax, %es
+ 126 0088 E8FCFFFF 	    call inthandler21
+ 126      FF
+ 127 008d 58       	    pop %eax
+ 128 008e 61       	    popa
+ 129 008f 1F       	    pop %ds
+ 130 0090 07       	    pop %es
+ 131 0091 CF       	    iret
+ 132              	    #es, ds, ssを同じ値に揃えるのは、「C言語ではこれらが同じセグメント�
+ 133              	
+ 134              	#void asm_inthandler2c(void)
+ 135              	asm_inthandler2c:
+ 136 0092 06       	    push %es
+ 137 0093 1E       	    push %ds
+ 138 0094 60       	    pusha
+ 139 0095 89E0     	    mov %esp, %eax
+ 140 0097 50       	    push %eax
+ 141 0098 668CD0   	    mov %ss, %ax
+ 142 009b 8ED8     	    mov %ax, %ds
+ 143 009d 8EC0     	    mov %ax, %es
+ 144 009f E8FCFFFF 	    call inthandler2c
+ 144      FF
+ 145 00a4 58       	    pop %eax
+ 146 00a5 61       	    popa
+ 147 00a6 1F       	    pop %ds
+ 148 00a7 07       	    pop %es
+ 149 00a8 CF       	    iret
+ 150              	
+ 151              	#void asm_inthandler27(void)
+ 152              	asm_inthandler27:
+ 153 00a9 06       	    push %es
+ 154 00aa 1E       	    push %ds
+ 155 00ab 60       	    pusha
+ 156 00ac 89E0     	    mov %esp, %eax
+ 157 00ae 50       	    push %eax
+ 158 00af 668CD0   	    mov %ss, %ax
+ 159 00b2 8ED8     	    mov %ax, %ds
+ 160 00b4 8EC0     	    mov %ax, %es
+ 161 00b6 E8FCFFFF 	    call inthandler27
+GAS LISTING src/asm/asm_func.s 			page 4
+
+
+ 161      FF
+ 162 00bb 58       	    pop %eax
+ 163 00bc 61       	    popa
+ 164 00bd 1F       	    pop %ds
+ 165 00be 07       	    pop %es
+ 166 00bf CF       	    iret
+ 167              	
+GAS LISTING src/asm/asm_func.s 			page 5
+
+
+DEFINED SYMBOLS
+  src/asm/asm_func.s:16     .text:0000000000000000 io_hlt
+  src/asm/asm_func.s:21     .text:0000000000000002 io_cli
+  src/asm/asm_func.s:26     .text:0000000000000004 io_sti
+  src/asm/asm_func.s:31     .text:0000000000000006 io_stihlt
+  src/asm/asm_func.s:37     .text:0000000000000009 io_in8
+  src/asm/asm_func.s:44     .text:0000000000000014 io_in16
+  src/asm/asm_func.s:51     .text:0000000000000020 io_in32
+  src/asm/asm_func.s:57     .text:0000000000000026 io_out8
+  src/asm/asm_func.s:64     .text:0000000000000030 io_out16
+  src/asm/asm_func.s:71     .text:000000000000003b io_out32
+  src/asm/asm_func.s:78     .text:0000000000000045 io_load_eflags
+  src/asm/asm_func.s:84     .text:0000000000000048 io_store_eflags
+  src/asm/asm_func.s:91     .text:000000000000004f load_gdtr
+  src/asm/asm_func.s:98     .text:000000000000005f load_idtr
+  src/asm/asm_func.s:105    .text:000000000000006f load_cr0
+  src/asm/asm_func.s:110    .text:0000000000000073 store_cr0
+  src/asm/asm_func.s:117    .text:000000000000007b asm_inthandler21
+  src/asm/asm_func.s:135    .text:0000000000000092 asm_inthandler2c
+  src/asm/asm_func.s:152    .text:00000000000000a9 asm_inthandler27
+
+UNDEFINED SYMBOLS
+inthandler21
+inthandler2c
+inthandler27

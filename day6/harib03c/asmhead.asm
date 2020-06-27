@@ -103,7 +103,9 @@ pipelineflush:
 		MOV		EDI,DSKCAC+512	; 転送先
 		MOV		ECX,0
 		MOV		CL,BYTE [CYLS]
-		IMUL	ECX,512*18*2/4	; シリンダ数からバイト数/4に変換
+;		IMUL	ECX,512*18*2/4	; シリンダ数からバイト数/4に変換
+		IMUL	ECX,CL * 512*2/4	; シリンダ数からバイト数/4に変換
+
 		SUB		ECX,512/4		; IPLの分だけ差し引く
 		CALL	memcpy
 
